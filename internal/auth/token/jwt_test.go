@@ -63,14 +63,14 @@ func TestParseJwtTokenRefusesForgedTokens(t *testing.T) {
 		token string
 		want  error
 	}{
-		"alg none":       {sign(jwt.SigningMethodNone, jwt.UnsafeAllowNoneSignatureType, live), jwt.ErrTokenSignatureInvalid},
-		"RS256":          {sign(jwt.SigningMethodRS256, rsaKey, live), jwt.ErrTokenSignatureInvalid},
-		"HS512":          {sign(jwt.SigningMethodHS512, []byte(testSecret), live), jwt.ErrTokenSignatureInvalid},
-		"missing exp":    {sign(jwt.SigningMethodHS256, []byte(testSecret), jwt.MapClaims{"iat": now, "UserId": int64(7)}), jwt.ErrTokenRequiredClaimMissing},
-		"wrong secret":   {wrongSecret, jwt.ErrTokenSignatureInvalid},
-		"expired":        {expired, jwt.ErrTokenExpired},
-		"garbage":        {"not-a-token", jwt.ErrTokenMalformed},
-		"tampered claim": {tamper(t, sign(jwt.SigningMethodHS256, []byte(testSecret), live)), jwt.ErrTokenSignatureInvalid},
+		"alg none":           {sign(jwt.SigningMethodNone, jwt.UnsafeAllowNoneSignatureType, live), jwt.ErrTokenSignatureInvalid},
+		"RS256":              {sign(jwt.SigningMethodRS256, rsaKey, live), jwt.ErrTokenSignatureInvalid},
+		"HS512":              {sign(jwt.SigningMethodHS512, []byte(testSecret), live), jwt.ErrTokenSignatureInvalid},
+		"missing exp":        {sign(jwt.SigningMethodHS256, []byte(testSecret), jwt.MapClaims{"iat": now, "UserId": int64(7)}), jwt.ErrTokenRequiredClaimMissing},
+		"wrong secret":       {wrongSecret, jwt.ErrTokenSignatureInvalid},
+		"expired":            {expired, jwt.ErrTokenExpired},
+		"garbage":            {"not-a-token", jwt.ErrTokenMalformed},
+		"tampered signature": {tamper(t, sign(jwt.SigningMethodHS256, []byte(testSecret), live)), jwt.ErrTokenSignatureInvalid},
 	} {
 		t.Run(name, func(t *testing.T) {
 			claims, err := ParseJwtToken(tc.token, testSecret)
@@ -84,16 +84,16 @@ func TestParseJwtTokenRefusesForgedTokens(t *testing.T) {
 	}
 }
 
-// tamper changes the last character of the token's signature, so the
-// claims parse but the signature no longer verifies.
+// Change a full base64url character: the last character has unused bits,
+// so changing it can leave the decoded signature unchanged.
 func tamper(t *testing.T, signed string) string {
 	t.Helper()
 	b := []byte(signed)
-	last := len(b) - 1
-	if b[last] == 'A' {
-		b[last] = 'B'
+	at := len(b) - 2
+	if b[at] == 'A' {
+		b[at] = 'B'
 	} else {
-		b[last] = 'A'
+		b[at] = 'A'
 	}
 	return string(b)
 }
