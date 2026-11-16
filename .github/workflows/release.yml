@@ -35,8 +35,8 @@ jobs:
         uses: docker/login-action@v3
         with:
           registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
+          username: phenix3443
+          password: ${{ secrets.GHCR_PUBLISH_TOKEN }}
 
       - name: Extract version from git tag
         id: version
@@ -61,8 +61,8 @@ jobs:
           build-args: |
             VERSION=${{ env.VERSION }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:latest
-            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.GIT_SHA }}
+            ghcr.io/phenix3443/${{ env.IMAGE_NAME }}:latest
+            ghcr.io/phenix3443/${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.GIT_SHA }}
 
       - name: Build and push image for beta release
         if: contains(github.ref_name, 'beta')
@@ -75,8 +75,8 @@ jobs:
           build-args: |
             VERSION=${{ env.VERSION }}
           tags: |
-            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:beta
-            ghcr.io/${{ github.repository_owner }}/${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.GIT_SHA }}
+            ghcr.io/phenix3443/${{ env.IMAGE_NAME }}:beta
+            ghcr.io/phenix3443/${{ env.IMAGE_NAME }}:${{ env.VERSION }}-${{ env.GIT_SHA }}
 
   release-notes:
     runs-on: ubuntu-latest
